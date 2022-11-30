@@ -1,0 +1,227 @@
+version: "3"
+
+services:
+# Setting Up HDFS & YARN #
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    restart: always
+    ports:
+      - 9870:9870
+      - 9000:9000
+      - 8082:8082 # zeppelin ui
+      - 8080:8080 # spark master web ui
+      - 8081:8081 # spark slave web ui
+      - 4040:4040 # spark driver web ui
+      - 3000:3000 # airflow ui
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - hadoop_namenode_conda:/root/anaconda
+      - hadoop_namenode_spark:/opt/spark
+      - hadoop_namenode_zeppelin:/opt/zeppelin
+      - ./configs/zeppelin-site.xml:/opt/zeppelin/conf/zeppelin-site.xml
+      - ./configs/zeppelin-env.sh:/opt/zeppelin/conf/zeppelin-env.sh
+      - ./configs/namenode_bashrc.txt:/root/.bashrc
+      - ./configs/namenode_airflow.cfg:/root/airflow/airflow.cfg
+      - ./dags:/root/airflow/dags
+      - airflow_namenode:/root/airflow
+      - ./configs/namenode/flume/flume-env.sh:/opt/flume/conf/flume-env.sh
+      - hadoop_namenode_flume:/opt/flume
+    environment:
+      - CLUSTER_NAME=hadoop-learning
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    restart: always
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+      - hadoop_datanode_conda:/root/anaconda
+      - ./configs/datanode_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+      CORE_CONF_fs_defaultFS: "hdfs://namenode:9000"
+    ports:
+      - "9864:9864"
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: always
+    volumes:
+      - hadoop_resourcemanager_conda:/root/anaconda
+      - ./configs/resourcemanager_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+    ports:
+      - "8088:8088"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: always
+    volumes:
+      - hadoop_nodemanager_conda:/root/anaconda
+      - ./configs/nodemanager_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    ports:
+      - "8042:8042"
+      - "19888:19888" # to access job history
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    ports:
+      - "8188:8188"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+
+# Setting up Hive #
+  hive-server:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-server
+    depends_on:
+      - namenode
+      - datanode
+      - hive-metastore
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - hadoop_hive_server_sqoop:/usr/lib/sqoop
+      - ./configs/hive_server/sqoop-env.sh:/usr/lib/sqoop/conf/sqoop-env.sh
+      - ./configs/hive_server/hive_server_bashrc.txt:/root/.bashrc
+      - ./configs/hive_server/sqoop-site.xml:/usr/lib/sqoop/conf/sqoop-site.xml
+      - ./configs/hive_server/sshd_config.conf:/etc/ssh/sshd_config
+    environment:
+      HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
+      SERVICE_PRECONDITION: "hive-metastore:9083"
+    ports:
+      # - 9999:9999
+      - 10000:10000
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-metastore
+    env_file:
+      - ./hadoop.env
+    command: /opt/hive/bin/hive --service metastore
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432"
+    ports:
+      - "9083:9083"
+    depends_on:
+      - hive-metastore-postgresql
+
+  hive-metastore-postgresql:
+    image: bde2020/hive-metastore-postgresql:2.3.0
+    container_name: hive-metastore-postgresql
+
+# Hue #
+  # huedb:
+  #   image: postgres
+  #   container_name: huedb
+  #   volumes:
+  #     - hue_pg_data:/var/lib/postgresl/data/
+  #   # ports:
+  #   #   - "5432:5432"
+  #   env_file:
+  #     - ./hadoop.env
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
+  #     POSTGRES_USER: hue
+  #     POSTGRES_PASSWORD: hue
+  #     POSTGRES_DB: hue
+  
+# set username & pass when login to hue for 1st time
+# username - admin
+# pass - admin
+
+  # hue:
+  #   image: gethue/hue:4.6.0
+  #   container_name: hue
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
+  #   ports:
+  #     - "8888:8888"
+  #   env_file:
+  #     - ./hadoop.env
+  #   volumes:
+  #     - ./hue-overrides.ini:/usr/share/hue/desktop/conf/hue-overrides.ini
+  #   depends_on:
+  #     - huedb
+
+# Setup external DB & pagadmin
+  external_postgres_db:
+    image: postgres
+    container_name: external_postgres_db
+    volumes:
+      - external_postgres_db_data:/var/lib/postgresl/data/
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: external
+      POSTGRES_PASSWORD: external
+      POSTGRES_DB: external
+  
+  external_pgadmin:
+    image: dpage/pgadmin4
+    container_name: external_pgadmin
+    ports:
+      - "5000:80"
+    environment:
+      - "PGADMIN_DEFAULT_EMAIL=mrugankray@gmail.com"
+      - "PGADMIN_DEFAULT_PASSWORD=external"
+    depends_on:
+      - external_postgres_db
+
+# Cassandra #
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      - "MAX_HEAP_SIZE=256M"
+      - "HEAP_NEWSIZE=128M"
+      - "CASSANDRA_USER=cassandra"
+      - "CASSANDRA_PASSWORD=cassandra"
+    restart: always
+    volumes:
+      - cassandra_db:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  hadoop_namenode:
+  hadoop_namenode_conda:
+  hadoop_namenode_spark:
+  hadoop_namenode_zeppelin:
+  hadoop_namenode_flume:
+  hadoop_datanode:
+  hadoop_datanode_conda:
+  hadoop_resourcemanager_conda:
+  hadoop_nodemanager_conda:
+  hadoop_historyserver:
+  hadoop_hive_server_sqoop:
+  hue_pg_data:
+  external_postgres_db_data:
+  airflow_namenode:
+  cassandra_db:
