@@ -26,6 +26,7 @@ services:
       - ./dags:/root/airflow/dags
       - airflow_namenode:/root/airflow
       - ./configs/namenode/flume/flume-env.sh:/opt/flume/conf/flume-env.sh
+      - ./flume_config/flume.conf:/opt/flume/conf/flume.conf
       - hadoop_namenode_flume:/opt/flume
     environment:
       - CLUSTER_NAME=hadoop-learning
