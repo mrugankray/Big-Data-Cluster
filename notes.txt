@@ -117,9 +117,9 @@ ON movies.movieid = rating_counts_table.id;
 // ignore: -> echo "export SQOOP_HOME=/usr/lib/sqoop" >> ~/.bashrc
 // ignore: -> echo "export PATH=$PATH:$SQOOP_HOME/bin" >> ~/.bashrc
 -> source ~/.bashrc
--> cd $SQOOP_HOME/conf  
+//ignore: -> cd $SQOOP_HOME/conf  
 -> apt-get update
--> apt-get install nano -y
+-> apt-get install nano -y --force-yes
 
 -> cd /usr/lib/sqoop/lib
 -> curl -O http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-5.1.49.tar.gz
@@ -135,6 +135,13 @@ ON movies.movieid = rating_counts_table.id;
 -> cd /usr/lib/sqoop
 // ignore this command -> cp /opt/hadoop-3.2.1/share/hadoop/mapreduce/hadoop-mapreduce-client-core-3.2.1.jar /usr/lib/sqoop/
 -> curl -O https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-client-jobclient/3.2.1/hadoop-mapreduce-client-jobclient-3.2.1.jar
+
+# install ssh server
+-> apt-get install openssh-server -y --force-yes
+-> service ssh start
+# set os pass so that user can login via ssh
+-> passwd root
+-> set it to 1234
 
 # Create a test table on external postgres DB #
 CREATE TABLE IF NOT EXISTS Test(id SERIAL PRIMARY KEY, name VARCHAR(50));
@@ -175,7 +182,7 @@ INSERT INTO test (name) VALUES ('Mrugank Ray');
 # list sqoop jobs
 -> sqoop job --list
 
-# start a job
+# execute a job
 -> sqoop job --exec <job-name>
 
 # show job
@@ -383,6 +390,7 @@ I don't have a lot of experience with pyspark or yarn, but if Polynote is suppos
 -> curl -O https://archive.apache.org/dist/spark/spark-3.2.2/spark-3.2.2-bin-hadoop3.2.tgz
 -> tar xf spark-*
 -> rm -rf spark*.tgz
+// ignore: -> mv spark-3.2.2-bin-hadoop3.2 spark
 -> mv spark-3.2.2-bin-hadoop3.2/* spark
 -> rm -rf spark-3.2.2-bin-hadoop3.2
 // ignore: -> echo "export SPARK_HOME=/opt/spark" >> ~/.bashrc
@@ -398,7 +406,7 @@ I don't have a lot of experience with pyspark or yarn, but if Polynote is suppos
 -> tar -xf mysql-connector-java-5.1.49.tar.gz
 -> rm -rf mysql-connector-java-5.1.49.tar.gz
 -> curl -O https://jdbc.postgresql.org/download/postgresql-42.5.0.jar --insecure
--> curl -O jdbc.postgresql.org/download/postgresql-9.3-1101.jdbc41.jar
+// ignore: -> curl -O jdbc.postgresql.org/download/postgresql-9.3-1101.jdbc41.jar
 -> cd /opt/spark/sbin
 -> start-master.sh
 -> start-slave.sh spark://namenode:7077
@@ -555,12 +563,13 @@ Spark Master Server: http://namenode:7077(not exposed to host)
 -> curl -O https://dlcdn.apache.org/zeppelin/zeppelin-0.10.1/zeppelin-0.10.1-bin-netinst.tgz --insecure
 -> tar -xf zeppelin-0.10.1-bin-netinst.tgz
 -> rm -rf zeppelin*.tgz
+// ignore: -> mv zeppelin-0.10.1-bin-netinst zeppelin
 -> mv zeppelin-0.10.1-bin-netinst/* zeppelin
 -> rm -rf zeppelin-0.10.1-bin-netinst
--> echo "export ZEPPELIN_HOME=/opt/zeppelin" >> ~/.bashrc
--> source ~/.bashrc
--> echo "export PATH=$PATH:$ZEPPELIN_HOME/bin" >> ~/.bashrc
--> source ~/.bashrc
+// ignore: -> echo "export ZEPPELIN_HOME=/opt/zeppelin" >> ~/.bashrc
+// ignore: -> source ~/.bashrc
+// ignore: -> echo "export PATH=$PATH:$ZEPPELIN_HOME/bin" >> ~/.bashrc
+// ignore: -> source ~/.bashrc
 -> zeppelin-daemon.sh start
 
 # stop Zeppline
@@ -618,18 +627,19 @@ OR
 -> kill -9 process_id
 
 ## install ssh
--> apt-get update
--> apt-get install openssh-server -y
--> service ssh start
+//ignore: -> login into hive-server
+//ignore: -> apt-get update
+//ignore: -> apt-get install openssh-server -y
+//ignore: -> service ssh start
 
 ## reset root password
--> passwd root
--> set it to 1234
+//ignore:-> passwd root
+//ignore:-> set it to 1234
 
 ## change ssh conf
--> nano /etc/ssh/sshd_config
--> modify -> PermitRootLogin yes
--> modify -> PasswordAuthentication yes
+// ignore: -> nano /etc/ssh/sshd_config
+// ignore: -> modify -> PermitRootLogin yes
+// ignore: -> modify -> PasswordAuthentication yes
 
 ## login using ssh
 -> ssh root@172.21.0.12
@@ -671,6 +681,7 @@ OR
 -> curl -O https://dlcdn.apache.org/flume/1.11.0/apache-flume-1.11.0-bin.tar.gz --insecure
 -> tar -xf apache-flume-1.11.0-bin.tar.gz
 -> rm -rf apache-flume-1.11.0-bin.tar.gz
+// ignore: -> mv apache-flume-1.11.0-bin flume
 -> mv apache-flume-1.11.0-bin/* flume
 -> rm -rf apache-flume-1.11.0-bin
 -> cd flume/lib
@@ -686,3 +697,9 @@ OR
 
 ## Run Flume as a service
 -> service flume-agent start
+
+### BUILD NAMENODE ###
+-> sudo docker build -t namenode-spark-airflow-flume-zepplin:1.0 .
+
+### BUILD HIVE SERVER ###
+-> sudo docker build -t hive-server-sqoop:1.0 .
