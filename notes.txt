@@ -703,3 +703,6 @@ OR
 
 ### BUILD HIVE SERVER ###
 -> sudo docker build -t hive-server-sqoop:1.0 .
+
+### BUILD DATANODE ###
+-> sudo docker build -t datanode-python:1.0 .
