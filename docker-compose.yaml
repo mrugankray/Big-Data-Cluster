@@ -185,7 +185,7 @@ services:
     ports:
       - "5000:80"
     environment:
-      - "PGADMIN_DEFAULT_EMAIL=mrugankray@gmail.com"
+      - "PGADMIN_DEFAULT_EMAIL=pgadmin@xyz.com"
       - "PGADMIN_DEFAULT_PASSWORD=external"
     depends_on:
       - external_postgres_db

@@ -6,3 +6,4 @@ pyspark
 docker-compose_with_hue.yaml
 Dockerfile
 spark_tutorial_udemy.zip
+notes.txt
