@@ -1,6 +1,6 @@
 # Hi there, I'm [Mrugank][linkedin] 👋 
 
-[![YouTube Channel Subscribers](https://img.shields.io/youtube/channel/subscribers/UC_o2rxaj5w_CAl5y_V1nqNg?logo=youtube&logoColor=red&style=for-the-badge)][youtube] [![My Website](https://img.shields.io/website?style=for-the-badge&url=https%3A%2F%2Fmrayonline.web.app%2F)][website] [![LinkedIn](https://img.shields.io/website?color=blue&label=linkedin&logo=linkedin&logoColor=blue&style=for-the-badge&up_color=green&up_message=mrugank%20ray&url=https%3A%2F%2Fmrayonline.web.app%2F)][linkedin]
+[![YouTube Channel Subscribers](https://img.shields.io/youtube/channel/subscribers/UC_o2rxaj5w_CAl5y_V1nqNg?logo=youtube&logoColor=red&style=for-the-badge)][youtube] [![My Website](https://img.shields.io/website?style=for-the-badge&url=https%3A%2F%2Fmrayonline.web.app%2F)][website] [![LinkedIn](https://img.shields.io/website?color=blue&label=linkedin&logo=linkedin&logoColor=blue&style=for-the-badge&up_color=green&up_message=mrugank%20ray&url=https%3A%2F%2Fmrayonline.web.app%2F)][linkedin] [![Buy me coffee](https://img.shields.io/website?label=Buy%20Me%20coffee&style=for-the-badge&up_color=orange&up_message=mrugank%20ray&url=https%3A%2F%2Fwww.buymeacoffee.com%2Fmrugankray)][buy_me_coffee]
 
 # Docker cluster
 This project will create a docker cluster with Hadoop, HDFS, Hive, PySpark, Sqoop, Airflow, Flume, Postgres, Cassandra, Hue and Zepplin.
@@ -55,7 +55,7 @@ If this does not work replace `/bin/bash` with `/bin/sh`
 You can access HDFS from Hue or Namenode UI. 
 > Note: Hue allows you to access file content on HDFS, however Namenode's UI does not support this. 
 
-You can also access HDFS from inside the containers running hadoop. 
+You can also access HDFS from inside the containers running hadoop such as `namenode`.
 
 ## Access Postgres DB
 You can access Postgres server using pgAdmin. You can run SQL queries using the same.
@@ -79,9 +79,9 @@ Spark is installed in `namenode`. You need to access namenode container & run `s
 In this cluster You can run Spark in three modes:
 |Mode | Command |
 |--- |--- |
-| Local | spark-submit <python-script-path> |
-| [YARN](https://spark.apache.org/docs/latest/running-on-yarn.html) | spark-submit --master yarn --deploy-mode cluster <python-script-path>  |
-| [Stand Alone](https://spark.apache.org/docs/latest/spark-standalone.html) | spark-submit --master spark://namenode:7077 --deploy-mode cluster <python-script-path> |
+| Local | spark-submit [python-script-path] |
+| [YARN](https://spark.apache.org/docs/latest/running-on-yarn.html) | spark-submit --master yarn --deploy-mode cluster [python-script-path]  |
+| [Stand Alone](https://spark.apache.org/docs/latest/spark-standalone.html) | spark-submit --master spark://namenode:7077 --deploy-mode cluster [python-script-path] |
 
 ##### Run PySpark in zeppeline
 For development purpose you can use [Zeppelin](https://zeppelin.apache.org/docs/latest/interpreter/spark.html) to run spark jobs. Select Spark Interpreter while creating a new script in zeppelin. Don't forget to add `%spark.pyspark` at the starting of the block/cell. Keep your spark related code in one block/cell. 
@@ -103,7 +103,7 @@ Sqoop is configured to [store DB password](https://sqoop.apache.org/docs/1.4.6/S
 hive-server container houses an ssh server.
 [SSHOperator](https://airflow.apache.org/docs/apache-airflow-providers-ssh/stable/_api/airflow/providers/ssh/operators/ssh/index.html) in Airflow may be used to log into the hive server and run a Sqoop job. To login to hive-server from airflow, set Host to `hive-server`, Username to `root` & Password to container's password while creating a ssh connection in Airflow.
 
-Below is the command to set password in the container.
+Below is the command to set password in a container.
 ```sh
 passwd root
 ```
@@ -247,3 +247,4 @@ A ssh server runs on hive-server container. You can configure it by modifying `c
 [website]: https://mrayonline.web.app
 [youtube]: https://www.youtube.com/@mrugankray7623
 [linkedin]: https://in.linkedin.com/in/mrugank-ray-543886149
+[buy_me_coffee]: https://www.buymeacoffee.com/mrugankray
