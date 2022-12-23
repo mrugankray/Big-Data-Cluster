@@ -25,6 +25,7 @@ All hadoop technologies or frameworks are exposed to the Host. You can access th
 10. Spark Driver UI: http://localhost:4040(accessible only after a driver is started)
 11. Zeppelin UI: http://localhost:8082
 12. Airflow UI: http://localhost:3000
+13. pgAdmin UI: http://localhost:5000
 
 ## Containers running in the cluster
 Below are containers running in the cluster.
@@ -225,7 +226,7 @@ Below are variables that I've configured. You can leave other variables as it is
 | sql_alchemy_conn | sqlite:////root/airflow/airflow.db |
 | [executor](https://airflow.apache.org/docs/apache-airflow/stable/executor/index.html) | SequentialExecutor |
 
-You can use other executors such as `LocalExecutor`. To use this executor you need to create a DB in a DB server, you can use the postgres server that runs in `external_postgres_db` container. Once the DB is created, set sql_alchemy_conn to postgresql+psycopg2://<username>:<password>@<IP/container-name>:5432/<db-name> & executor to LocalExecutor.
+You can use other executors such as `LocalExecutor`. To use this executor you need to create a DB in a DB server, you can use the postgres server that runs in `external_postgres_db` container. Once the DB is created, set sql_alchemy_conn to postgresql+psycopg2://<username>:<password>@<IP/container-name>:5432/[db-name] & executor to LocalExecutor.
 
 ## Configure Sqoop
 You can configure sqoop by modifying `configs/hive_server/sqoop-site.xml` in the project directory.
