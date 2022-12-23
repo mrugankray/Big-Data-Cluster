@@ -3,7 +3,8 @@ version: "3"
 services:
 # Setting Up HDFS & YARN #
   namenode:
-    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    # image: namenode-spark-airflow-flume-zepplin:1.0
+    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.0
     container_name: namenode
     restart: always
     ports:
@@ -35,7 +36,7 @@ services:
       - ./hadoop.env
 
   datanode:
-    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    image: mrugankray/datanode-python:1.0
     container_name: datanode
     restart: always
     volumes:
@@ -51,7 +52,7 @@ services:
       - ./hadoop.env
 
   resourcemanager:
-    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    image: mrugankray/resourcemanager-python:1.0
     container_name: resourcemanager
     restart: always
     volumes:
@@ -65,7 +66,7 @@ services:
       - ./hadoop.env
 
   nodemanager:
-    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    image: mrugankray/nodemanager-python:1.0
     container_name: nodemanager
     restart: always
     volumes:
@@ -94,7 +95,7 @@ services:
 
 # Setting up Hive #
   hive-server:
-    image: bde2020/hive:2.3.2-postgresql-metastore
+    image: mrugankray/hive-server-sqoop:1.0
     container_name: hive-server
     depends_on:
       - namenode
@@ -133,42 +134,42 @@ services:
     container_name: hive-metastore-postgresql
 
 # Hue #
-  # huedb:
-  #   image: postgres
-  #   container_name: huedb
-  #   volumes:
-  #     - hue_pg_data:/var/lib/postgresl/data/
-  #   # ports:
-  #   #   - "5432:5432"
-  #   env_file:
-  #     - ./hadoop.env
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
-  #     POSTGRES_USER: hue
-  #     POSTGRES_PASSWORD: hue
-  #     POSTGRES_DB: hue
+  huedb:
+    image: postgres:15.1-alpine3.17
+    container_name: huedb
+    volumes:
+      - hue_pg_data:/var/lib/postgresl/data/
+    # ports:
+    #   - "5432:5432"
+    env_file:
+      - ./hadoop.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
+      POSTGRES_USER: hue
+      POSTGRES_PASSWORD: hue
+      POSTGRES_DB: hue
   
 # set username & pass when login to hue for 1st time
 # username - admin
 # pass - admin
 
-  # hue:
-  #   image: gethue/hue:4.6.0
-  #   container_name: hue
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
-  #   ports:
-  #     - "8888:8888"
-  #   env_file:
-  #     - ./hadoop.env
-  #   volumes:
-  #     - ./hue-overrides.ini:/usr/share/hue/desktop/conf/hue-overrides.ini
-  #   depends_on:
-  #     - huedb
+  hue:
+    image: gethue/hue:4.6.0
+    container_name: hue
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 hive-metastore-postgresql:5432 hive-metastore:9083 hive-server:10000 resourcemanager:8088"
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - ./hue-overrides.ini:/usr/share/hue/desktop/conf/hue-overrides.ini
+    depends_on:
+      - huedb
 
 # Setup external DB & pagadmin
   external_postgres_db:
-    image: postgres
+    image: postgres:15.1-alpine3.17
     container_name: external_postgres_db
     volumes:
       - external_postgres_db_data:/var/lib/postgresl/data/
@@ -180,7 +181,7 @@ services:
       POSTGRES_DB: external
   
   external_pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:6.18
     container_name: external_pgadmin
     ports:
       - "5000:80"

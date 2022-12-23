@@ -125,7 +125,7 @@ SequentialExecutor uses SQLite to store metadata. If you want to use other execu
 - email: admin@gmail.com
 
 ## Run Flume Agents
-Flume is installed in `namenode`. To configure flume agents you need to configure `flume_config/flume.conf` file in the project directory. To start flume agents you need to access namenode & run the below command.
+[Flume](https://flume.apache.org/FlumeUserGuide.html) is installed in `namenode`. To configure flume agents you need to configure `flume_config/flume.conf` file in the project directory. To start flume agents you need to access namenode & run the below command.
 ```sh
 flume-ng agent --conf conf --conf-file /opt/flume/conf/flume.conf --name <agent-name> -Dflume.root.logger=INFO,console
 ```
@@ -243,6 +243,19 @@ I’ve modified it’s default config so that it could save DB server password i
 
 ## Configure ssh server
 A ssh server runs on hive-server container. You can configure it by modifying `configs/hive_server/sshd_config.conf` in the project directory. I've configured it to allow password authentication & login as root.
+
+## Manage resources
+I recommend using a workstation with at least 4 hyper-threaded cores & 8GB RAM to run this cluster. Additionally, I suggest against running any other programmes simultaneously because doing so could lead to resource shortages and other issues when using certain ports.
+
+##### Reduce resource utilization 
+1. If you aren't using Hive, I advise starting cluster without hue and huedb.
+Simply comment them out in "docker-compose.yaml" before launching the cluster.
+2. You can start the cluster without the external_pgadmin container if you do not need to execute SQL queries on Postgres.
+3. If you don't need cassandra, launch the cluster without it. 
+
+###### Spark & Zeppelin
+1. when you run your PySpark code in zeppelin, it starts a spark driver code, this consumes a lot of resources, I recommend running `spark.stop()` & `sc.stop()` in the next block in zeppelin. This will stop the spark driver.
+2. If it still hogs resources, you can login to `namenode` & run `zeppelin-daemon.sh stop`. This will stop zeppelin.
 
 [website]: https://mrayonline.web.app
 [youtube]: https://www.youtube.com/@mrugankray7623
