@@ -4,7 +4,6 @@ docker-hadoop-spark
 hadoop_tutorial_udemy
 pyspark
 docker-compose_with_hue.yaml
-Dockerfile
 spark_tutorial_udemy.zip
 notes.txt
 docker-compose_with_custom_images.yaml
