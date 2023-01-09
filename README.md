@@ -7,9 +7,17 @@ This project will create a docker cluster with Hadoop, HDFS, Hive, PySpark, Sqoo
 
 ## Quick Start
 To start the cluster run the following command from the project directory.
-```
+
+##### On Linux
+```sh
 sudo docker-compose -f docker-compose.yaml up
 ```
+
+##### On Windows 10
+```sh
+docker-compose -f docker-compose.yaml up
+```
+> Note: You need to install WSL 2 on windows to run this cluster.
 
 ## Access Hadoop Ecosystem
 All hadoop technologies or frameworks are exposed to the Host. You can access these using the following urls.
@@ -45,14 +53,14 @@ Below are containers running in the cluster.
 | external_pgadmin | pgAdmin | You can use this to access Postgres server running in external_postgres_db container. |
 | cassandra | Cassandra | It's a non-relational column-oriented DB where you can store your data. |
 
-### Access docker containers
+## Access docker containers
 You can access a container by running this command 
 ```sh
 sudo docker exec -it <container-name> /bin/bash
 ```
 If this does not work replace `/bin/bash` with `/bin/sh`
 
-### Access HDFS
+## Access HDFS
 You can access HDFS from Hue or Namenode UI. 
 > Note: Hue allows you to access file content on HDFS, however Namenode's UI does not support this. 
 
@@ -70,11 +78,11 @@ You can access Postgres server using pgAdmin. You can run SQL queries using the 
 - email: pgadmin@xyz.com
 - password: external
 
-### Run Hive Queries
+## Run Hive Queries
 You can run Hive queries using Hue.
 A thrift server runs on the top of hiveserver 2. Hue has been set up to establish a connection with the thrift server, which executes your Hive queries. 
 
-### Run PySpark
+## Run PySpark
 Spark is installed in `namenode`. You need to access namenode container & run `spark-submit` command to run spark jobs.
 
 In this cluster You can run Spark in three modes:
@@ -91,7 +99,7 @@ For development purpose you can use [Zeppelin](https://zeppelin.apache.org/docs/
 ##### Schedule PySpark jobs in Airflow
 You can schedule Spark Jobs from [Airflow](https://airflow.apache.org/docs/apache-airflow/stable/). You need [Spark Provider](https://airflow.apache.org/docs/apache-airflow-providers-apache-spark/stable/index.html) to schedule spark jobs which has already been installed. To run spark jobs in spark stand alone cluster set Host to `namenode` & port to `7077` while creating a spark connection in Airflow.
 
-### Run Sqoop
+## Run Sqoop
 [Sqoop](https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html) is installed in hive-server container. Below is a sample command to import data using sqoop.
 ```sh
 sqoop import --connect jdbc:postgresql://external_postgres_db/external --username external --password external --table <your-table-name> --target-dir <dir-in-hdfs> --m 1
@@ -254,7 +262,7 @@ Simply comment them out in "docker-compose.yaml" before launching the cluster.
 2. You can start the cluster without the external_pgadmin container if you do not need to execute SQL queries on Postgres.
 3. If you don't need cassandra, launch the cluster without it. 
 
-###### Spark & Zeppelin
+##### Spark & Zeppelin
 1. when you run your PySpark code in zeppelin, it starts a spark driver code, this consumes a lot of resources, I recommend running `spark.stop()` & `sc.stop()` in the next block in zeppelin. This will stop the spark driver.
 2. If it still hogs resources, you can login to `namenode` & run `zeppelin-daemon.sh stop`. This will stop zeppelin.
 

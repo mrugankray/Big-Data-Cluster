@@ -1,0 +1,106 @@
+version: "3"
+
+services:
+# Setting Up HDFS & YARN #
+  namenode:
+    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.0
+    container_name: namenode
+    restart: always
+    ports:
+      - 9870:9870
+      - 9000:9000
+      - 8082:8082 # zeppelin ui
+      - 8080:8080 # spark master web ui
+      - 8081:8081 # spark slave web ui
+      - 4040:4040 # spark driver web ui
+      - 3000:3000 # airflow ui
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - hadoop_namenode_conda:/root/anaconda
+      - hadoop_namenode_spark:/opt/spark
+      - hadoop_namenode_zeppelin:/opt/zeppelin
+      - ./configs/zeppelin-site.xml:/opt/zeppelin/conf/zeppelin-site.xml
+      - ./configs/zeppelin-env.sh:/opt/zeppelin/conf/zeppelin-env.sh
+      - ./configs/namenode_bashrc.txt:/root/.bashrc
+      - ./configs/namenode_airflow.cfg:/root/airflow/airflow.cfg
+      - ./dags:/root/airflow/dags
+      - airflow_namenode:/root/airflow
+      - ./configs/namenode/flume/flume-env.sh:/opt/flume/conf/flume-env.sh
+      - ./flume_config/flume.conf:/opt/flume/conf/flume.conf
+      - hadoop_namenode_flume:/opt/flume
+    environment:
+      - CLUSTER_NAME=hadoop-learning
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: mrugankray/datanode-python:1.0
+    container_name: datanode
+    restart: always
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+      - hadoop_datanode_conda:/root/anaconda
+      - ./configs/datanode_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+      CORE_CONF_fs_defaultFS: "hdfs://namenode:9000"
+    ports:
+      - "9864:9864"
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: mrugankray/resourcemanager-python:1.0
+    container_name: resourcemanager
+    restart: always
+    volumes:
+      - hadoop_resourcemanager_conda:/root/anaconda
+      - ./configs/resourcemanager_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+    ports:
+      - "8088:8088"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager:
+    image: mrugankray/nodemanager-python:1.0
+    container_name: nodemanager
+    restart: always
+    volumes:
+      - hadoop_nodemanager_conda:/root/anaconda
+      - ./configs/nodemanager_bashrc.txt:/root/.bashrc
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    ports:
+      - "8042:8042"
+      - "19888:19888" # to access job history
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    ports:
+      - "8188:8188"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+
+volumes:
+  hadoop_namenode:
+  hadoop_namenode_conda:
+  hadoop_namenode_spark:
+  hadoop_namenode_zeppelin:
+  hadoop_namenode_flume:
+  hadoop_datanode:
+  hadoop_datanode_conda:
+  hadoop_resourcemanager_conda:
+  hadoop_nodemanager_conda:
+  hadoop_historyserver:
+  airflow_namenode:

@@ -3,7 +3,6 @@ version: "3"
 services:
 # Setting Up HDFS & YARN #
   namenode:
-    # image: namenode-spark-airflow-flume-zepplin:1.0
     image: mrugankray/namenode-spark-airflow-flume-zepplin:1.0
     container_name: namenode
     restart: always
@@ -92,6 +91,97 @@ services:
       - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
+  
+# Setting Kafka cluster #
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.0
+    hostname: zookeeper
+    container_name: zookeeper
+    depends_on:
+      - namenode
+      - datanode
+      - resourcemanager
+      - nodemanager
+      - historyserver
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+
+  kafka-broker:
+    image: confluentinc/cp-server:5.4.0
+    hostname: kafka-broker
+    container_name: kafka-broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka-broker:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: "true"
+      CONFLUENT_SUPPORT_CUSTOMER_ID: "anonymous"
+    volumes:
+      - kafka_broker:/var/lib/kafka/data
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.4.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - kafka-broker
+    ports:
+      - "8083:8083"
+    environment:
+      # SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: http://kafka-broker:29092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      # setting SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL to zookeper. schema registry will get kafka server url from zookeper
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
+      SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8083
+
+  kadmin:
+    image: bettercloud/kadmin:0.9.3
+    hostname: kadmin
+    container_name: kadmin
+    ports:
+      - "8084:8080"
+    environment:
+      ZOOKEEPER_HOST: zookeeper:2181
+      KAFKA_HOST: kafka-broker:29092
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:5.4.0
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      - zookeeper
+      - kafka-broker
+      - schema-registry
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
+      CONTROL_CENTER_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8083"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
 
 # Setting up Hive #
   hive-server:
@@ -113,7 +203,6 @@ services:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
       SERVICE_PRECONDITION: "hive-metastore:9083"
     ports:
-      # - 9999:9999
       - 10000:10000
 
   hive-metastore:
@@ -139,8 +228,6 @@ services:
     container_name: huedb
     volumes:
       - hue_pg_data:/var/lib/postgresl/data/
-    # ports:
-    #   - "5432:5432"
     env_file:
       - ./hadoop.env
     environment:
@@ -148,10 +235,6 @@ services:
       POSTGRES_USER: hue
       POSTGRES_PASSWORD: hue
       POSTGRES_DB: hue
-  
-# set username & pass when login to hue for 1st time
-# username - admin
-# pass - admin
 
   hue:
     image: gethue/hue:4.6.0
@@ -227,3 +310,6 @@ volumes:
   external_postgres_db_data:
   airflow_namenode:
   cassandra_db:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_broker:
