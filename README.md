@@ -61,7 +61,7 @@ This project will start a docker cluster which gives access to the following fra
 ## Running big data cluster
 To start the cluster run the following command from the project directory.
 
-##### Start basic cluster 
+### Start basic cluster 
 The basic cluster gives access to Hadoop, PySpark, Airflow, Flume and Zeppelin. It's a great place to start if you want to try out some of these tools without having to install them on your computer. 
 
 ##### On Linux
@@ -75,7 +75,7 @@ docker-compose -f basic-hadoop-docker-compose.yaml up
 ```
 > Note: You need to install WSL 2 on windows to run this cluster.
 
-##### Start basic cluster + Hive + Hue + DB
+### Start basic cluster + Hive + Hue + DB
 This file starts the basic cluster, Hive, Hue, Postgres, pgAdmin & Cassandra. This is great for building batch processing pipelines.
 
 ##### On Linux
@@ -89,7 +89,7 @@ docker-compose -f hive-sqoop-postgres-cassandra-docker-compose.yaml up
 ```
 > Note: You need to install WSL 2 on windows to run this cluster.
 
-##### Start basic cluster + kafka + schema registry
+### Start basic cluster + kafka + schema registry
 This file starts the basic cluster, zookeeper, kafka broker & schema registry. This is great for building streaming pipelines.
 
 ##### On Linux
@@ -103,7 +103,7 @@ docker-compose -f kafka-docker-compose.yaml up
 ```
 > Note: You need to install WSL 2 on windows to run this cluster.
 
-##### Start full cluster
+### Start full cluster
 This file starts all the framework/technology that are mentioned [here](#docker-cluster).
 
 ##### On Linux
