@@ -104,7 +104,7 @@ docker-compose -f kafka-docker-compose.yaml up
 > Note: You need to install WSL 2 on windows to run this cluster.
 
 ### Start full cluster
-This file starts all the framework/technology that are mentioned [here](#docker-cluster).
+This file starts all the framework/technology that are mentioned [here](#applications).
 
 ##### On Linux
 ```sh
