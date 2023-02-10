@@ -3,7 +3,7 @@ version: "3"
 services:
 # Setting Up HDFS & YARN #
   namenode:
-    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.0
+    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.1
     container_name: namenode
     restart: always
     ports:

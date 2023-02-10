@@ -3,7 +3,7 @@ version: "3"
 services:
 # Setting Up HDFS & YARN #
   namenode:
-    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.0
+    image: mrugankray/namenode-spark-airflow-flume-zepplin:1.1
     container_name: namenode
     restart: always
     ports:
@@ -144,6 +144,12 @@ services:
     depends_on:
       - zookeeper
       - kafka-broker
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     ports:
       - "8083:8083"
     environment:
@@ -152,6 +158,8 @@ services:
       # setting SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL to zookeper. schema registry will get kafka server url from zookeper
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
       SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8083
+      SCHEMA_REGISTRY_KAFKASTORE_ZK_SESSION_TIMEOUT_MS: 300000
+      SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS: 300000
 
   kadmin:
     image: bettercloud/kadmin:0.9.3
@@ -171,6 +179,12 @@ services:
       - zookeeper
       - kafka-broker
       - schema-registry
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     ports:
       - "9021:9021"
     environment:
