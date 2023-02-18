@@ -103,6 +103,20 @@ docker-compose -f kafka-docker-compose.yaml up
 ```
 > Note: You need to install WSL 2 on windows to run this cluster.
 
+### Start kafka cluster
+This file starts a kafka cluster. This is great for getting started with kafka and schema registry.
+
+##### On Linux
+```sh
+sudo docker-compose -f kafka-zookeper.yaml up
+```
+
+##### On Windows 10
+```sh
+docker-compose -f kafka-zookeper.yaml up
+```
+> Note: You need to install WSL 2 on windows to run this cluster.
+
 ### Start full cluster
 This file starts all the framework/technology that are mentioned [here](#applications).
 
