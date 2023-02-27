@@ -216,8 +216,20 @@ In this cluster You can run Spark in three modes:
 |Mode | Command |
 |--- |--- |
 | Local | spark-submit [python-script-path] |
-| [YARN](https://spark.apache.org/docs/latest/running-on-yarn.html) | spark-submit --master yarn --deploy-mode cluster [python-script-path]  |
+| [YARN](https://spark.apache.org/docs/latest/running-on-yarn.html) | spark-submit --master yarn --deploy-mode cluster --archives [file_path] --queue default [python-script-path]  |
 | [Stand Alone](https://spark.apache.org/docs/latest/spark-standalone.html) | spark-submit --master spark://namenode:7077 --deploy-mode cluster [python-script-path] |
+
+##### Run PySpark in YARN mode
+In this mode YARN takes care of scheduling spark job. You must create a compressed file that contains all of the packages if you're using any external packages, such as pandas.
+
+Run the below command to create this compressed file
+```sh
+conda pack -f -o conda_env.tar.gz
+```
+
+The above command will create `conda_env.tar.gz` in the current directory. You can then pass the absolute path of the file in `--archives` flag.
+
+> NOTE: You may choose not to add --archives flag if you're not using any external packages.
 
 ##### Run PySpark in zeppeline
 For development purpose you can use [Zeppelin](https://zeppelin.apache.org/docs/latest/interpreter/spark.html) to run spark jobs. Select Spark Interpreter while creating a new script in zeppelin. Don't forget to add `%spark.pyspark` at the starting of the block/cell. Keep your spark related code in one block/cell. 
